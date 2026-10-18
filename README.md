@@ -1,61 +1,54 @@
-# Temp Mail
+# Temp Mail po polsku — tymczasowy e-mail na 60 minut
 
-Produkcja: https://temp-mail.serwerbb.win. Istniejąca aplikacja Next.js 16 / React 19 / TypeScript / Tailwind, Fastify, PostgreSQL 17 tmpfs/UNLOGGED, Docker i Caddy.
+**[Otwórz działającą aplikację →](https://temp-mail.hubertmynarski.pl/)**
 
-Skrzynki wyłącznie odbierają pocztę i mają twarde 60 minut. Przedłużanie wyłączone. HTML sanityzowany i izolowany w iframe sandbox bez połączeń zewnętrznych. Załączniki: tylko nazwy i rozmiary. Odbiór internetowy Mailgun EU jest skonfigurowany i potwierdzony realną wiadomością: EMAIL_SETUP.md. AdSense wyłączone: ADSENSE_SETUP.md. Stan i ograniczenia: PLAN.md.
+Projekt Huberta Mynarskiego, ucznia technikum informatycznego. Jednorazowa skrzynka pozwala odebrać pocztę bez zakładania konta i podawania codziennego adresu e-mail. Projekt jest rozwijany również z pomocą narzędzi AI.
 
-## Aktualizacja
-Node >=22.13, npm i Docker Compose. Zachowaj istniejące deploy/.env.
+## Funkcje działającej usługi
 
-1. npm ci oraz npm ci --prefix server
-2. npm run lint
-3. node --experimental-strip-types --test server/test/*.test.mjs
-4. npx tsc --noEmit
-5. npm run build
-6. docker compose -p temp-mail --env-file deploy/.env -f deploy/compose.home.yaml up -d --build
-7. node deploy/verify.mjs
+- Losowy adres z 10 znakami przed @, ważny przez 60 minut.
+- Automatyczne sprawdzanie poczty co 5 sekund, gdy karta jest widoczna, i ręczne odświeżanie.
+- Czytnik sformatowanych wiadomości HTML oraz alternatywny widok tekstowy.
+- Kopiowanie rozpoznanego kodu weryfikacyjnego bezpośrednio z listy wiadomości.
+- Oczyszczanie HTML i izolacja treści w ramce; zewnętrzne obrazy są blokowane.
 
-Obraz web kopiuje standalone z wcześniejszego builda. SMTP do lokalnych testów na 127.0.0.1:2525, API receiver tylko w sieci Docker. Nie dołączaj smtp.override.yaml przy wdrażaniu Mailgun. Produkcja używa compose.home.yaml i caddy_default. compose.yaml jest starszym wariantem osobnego serwera. Caddyblock w deploy/caddy.home.block, wyjątek root ads.txt opisany w ADSENSE_SETUP.md.
+## Jak zacząć?
 
-## Zmienne produkcyjne
-- POSTGRES_PASSWORD, MAIL_API_KEY: istniejące sekrety. DATABASE_URL i MAIL_API_ORIGIN budowane przez Compose. SITE_ORIGIN=https://temp-mail.serwerbb.win.
-- MAIL_DOMAIN=inbox.temp-mail.serwerbb.win; MAIL_INGRESS_READY=true po potwierdzonym odbiorze.
-- MAILGUN_API_KEY: tylko provisioning, nie jest przekazywany aplikacji. MAILGUN_WEBHOOK_SIGNING_KEY: receiver, pobierany przez setup-mailgun.mjs.
-- NEXT_PUBLIC_ADSENSE_CLIENT, NEXT_PUBLIC_ADSENSE_SLOT_TOP, NEXT_PUBLIC_ADSENSE_SLOT_BOTTOM: rzeczywiste publiczne ID z AdSense, domyślnie puste.
-- ADSENSE_ENABLED=false, ADSENSE_SITE_STATUS puste, ADSENSE_CMP_PUBLISHED=false. Włączenie po Ready i testach CMP.
-- CLOUDFLARE_TOKEN_FILE: istniejący plik tokenu DNS montowany read-only przez compose.ddns.yaml.
+1. Otwórz [Temp Mail](https://temp-mail.hubertmynarski.pl/) i skopiuj wygenerowany adres.
+2. Podaj go w miejscu, w którym chcesz odebrać jednorazową wiadomość, zgodnie z zasadami nadawcy.
+3. Wróć do skrzynki, otwórz wiadomość albo skopiuj rozpoznany kod z listy.
 
-Nie publikuj .env i sekretów. Baza bez trwałego wolumenu, restart PostgreSQL usuwa dane. Bez snapshotów/kopii treści, logowania body, cookie czy nagłówków podpisu. Limity pojedynczej instancji: 10 skrzynek/h, 180 żądań/min klienta, webhook 240/min; 100 wiadomości/20 MiB na skrzynkę, 2 MiB wiadomości, 1 MiB załącznika, 10 załączników, 4 MiB webhook.
+Strona działa pod `temp-mail.hubertmynarski.pl`, a adresy odbiorcze kończą się na `@inbox.serwerbb.win`. Nie zmieniaj domeny w skopiowanym adresie.
 
-## Przygotowanie prywatnego repozytorium — 2026-10-12
+## Instrukcje i pomoc
 
-Serwis tymczasowych skrzynek pocztowych: Next.js, React, odbiornik SMTP/HTTP Node.js i PostgreSQL.
+- [Jak działa tymczasowy e-mail?](https://temp-mail.hubertmynarski.pl/jak-dziala)
+- [Wszystkie poradniki](https://temp-mail.hubertmynarski.pl/poradniki)
+- [Odbieranie i kopiowanie kodów weryfikacyjnych](https://temp-mail.hubertmynarski.pl/poradniki/kody-weryfikacyjne)
+- [Co sprawdzić, gdy wiadomość nie przychodzi?](https://temp-mail.hubertmynarski.pl/poradniki/wiadomosc-nie-przychodzi)
+- [O projekcie](https://temp-mail.hubertmynarski.pl/o-projekcie)
+- [Prywatność](https://temp-mail.hubertmynarski.pl/prywatnosc) · [Regulamin](https://temp-mail.hubertmynarski.pl/regulamin)
 
-Źródło bieżącego wdrożenia: `C:\Users\hmpow\Documents\Codex\2026-10-02\zbuduj-i-opublikuj-kompletn-aplikacj-webow-3\work\temp-mail`. Ten katalog jest oddzielną kopią przygotowaną do wersjonowania; działające kontenery nadal używają oryginału. Nie przeniesiono baz danych ani wolumenów. Nie dodano licencji open source.
+## Ograniczenia
 
-### Wymagania i instalacja
+Usługa wyłącznie odbiera pocztę. Nie wysyła wiadomości i nie udostępnia zawartości załączników — pokazuje tylko ich nazwy i rozmiary. Rozpoznawanie kodów jest heurystyczne i może wskazać błędny fragment. Niektóre serwisy nie akceptują adresów tymczasowych; dostarczenie wiadomości nie jest gwarantowane.
 
-Windows/PowerShell, Git, Docker Desktop z kontenerami Linux i Compose obsługującym `!override` (2.24.4 lub nowszy). Aplikacje JS wymagają Node.js 22.13+; projekty z pnpm używają pnpm 11.19.0. Backend wymaga Python 3.13 przy uruchomieniu poza Dockerem. Klonuj dopiero po utworzeniu potwierdzonego prywatnego repozytorium.
+Ważności skrzynki nie można przedłużyć. Po wygaśnięciu albo usunięciu wiadomości nie są przywracane. Dostęp zależy od cookie przeglądarki. Nie używaj jednorazowego adresu do poufnej korespondencji, ważnych kont ani odzyskiwania hasła.
 
-### Konfiguracja, uruchomienie i testy
+## Technologie
 
-```powershell
-npm ci
-npm ci --prefix server
-npm test
-npm run lint
-npm run typecheck
-npm run build
-if (!(Test-Path deploy/.env)) { Copy-Item deploy/.env.example deploy/.env }
-# Wypełnij zmienne w deploy/.env. Wariant domowy wymaga istniejącej sieci/bramy Caddy.
-docker compose --env-file deploy/.env -p temp-mail-dev -f deploy/compose.home.yaml config --quiet
-docker compose --env-file deploy/.env -p temp-mail-dev -f deploy/compose.home.yaml up -d --build
-```
+Next.js, React, TypeScript, Tailwind CSS, Fastify, PostgreSQL, Docker Compose i Caddy. Odbiór internetowy korzysta z integracji Mailgun.
 
-Wartości `.env.example` są szablonem, nie konfiguracją produkcyjną. Wypełnij lokalny `.env` niezależnymi losowymi sekretami; nie zastępuj działających kluczy bez planu rotacji. Porty i sieci produkcyjne są zajęte: używaj osobnego projektu Compose i wolnych portów. Temp Mail w wariancie domowym współdzieli bramę; pełne odizolowanie wymaga dodatkowej konfiguracji sieci i routingu. Nie wykonuj `down -v` na produkcji.
+## Kod repozytorium a usługa produkcyjna
 
-### Faktyczny stan kontroli i ograniczenia
+Powyższy opis dotyczy działającej aplikacji. Kod w tym repozytorium pochodzi ze starszej migawki projektu i może nie zawierać wszystkich funkcji obecnego wdrożenia. Aktualizacja tego README nie synchronizuje kodu ani konfiguracji produkcyjnej.
 
-24 testy jednostkowe PASS na oryginalnych zależnościach. Build/lint/typecheck wymagają ponownej kontroli. Odbiornik server zachowuje własną wersję 1.0.0.
+Dokumentacja techniczna wersji repozytorium: [PLAN.md](PLAN.md), [EMAIL_SETUP.md](EMAIL_SETUP.md), [KONTROLE.md](KONTROLE.md), [CHANGELOG.md](CHANGELOG.md). Te dokumenty mogą opisywać historyczne adresy i wyniki kontroli; nie traktuj ich jako bieżącej konfiguracji serwera.
 
-Wyniki końcowe i audyt po poprawkach opisuje `KONTROLE.md`. Workflow ma uprawnienie `contents: read`, brak sekretów, przypięte Actions i osobny skan Gitleaks przed instalacją zależności. Obecność workflow nie oznacza, że CI na GitHub zostało uruchomione. Zabezpieczenia konta, prywatność zdalnego repo i zgodność SHA wymagają sprawdzenia po wysłaniu. Pierwsze wydanie 0.1.0 należy oznaczyć jako prerelease.
+Sekrety, pliki `.env` i dane skrzynek nie powinny trafiać do repozytorium. Baza tego projektu przechowuje krótkotrwałe dane w pamięci: jej restart usuwa wiadomości. Aktualizacja samego frontendu powinna dotyczyć tylko usługi `web`, bez restartu bazy i bez `down -v`.
+
+## Hubert Mynarski
+
+[Portfolio](https://portfolio.hubertmynarski.pl/) · [CV](https://cv.hubertmynarski.pl/) · [GitHub](https://github.com/mynarskih)
+
+Repozytorium nie deklaruje licencji open source; ta aktualizacja jej nie dodaje.
